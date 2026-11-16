@@ -552,7 +552,7 @@ footer {
 
     <h2>Наша кінодобірка</h2>
 
-    <span>Гортай, читай і обирай фаворита ↓</span>
+    <span>Гортай, читай і обирай один або кілька фільмів ↓</span>
 
   </div>
 
@@ -564,7 +564,7 @@ footer {
 
     <p>
 
-      Обери фільм, який найбільше хочеться подивитися.<br>
+      Обери один або декілька фільмів, які найбільше хочеться подивитися.<br>
 
       Твій вибір можна скопіювати й надіслати в чат.
 
@@ -779,7 +779,7 @@ risk:"Це найбільш спокійний і розмовний фільм 
 
 // ВІДОБРАЖЕННЯ КАРТОК
 
-let selected = null;
+let selected = [];
 
 document.getElementById("movies").innerHTML =
 
@@ -873,86 +873,54 @@ films.map((f,i) => `
 
 `).join("");
 
-// ВИБІР ФІЛЬМУ
-
+// ВИБІР КІЛЬКОХ ФІЛЬМІВ
 function choose(i) {
+  if (selected.includes(i)) {
+    selected = selected.filter(index => index !== i);
+  } else {
+    selected.push(i);
+  }
 
-  selected = i;
-
-  document.querySelectorAll(".vote").forEach(button => {
-
-    button.classList.remove("selected");
-
-    button.textContent = "♡ Обрати цей фільм";
-
+  document.querySelectorAll(".vote").forEach((button, index) => {
+    const isSelected = selected.includes(index);
+    button.classList.toggle("selected", isSelected);
+    button.textContent = isSelected ? "✓ Обрано" : "♡ Обрати цей фільм";
   });
 
-  const button = document.getElementById("vote-" + i);
-
-  button.classList.add("selected");
-
-  button.textContent = "✓ Мій вибір";
-
-  document.getElementById("myChoice").textContent =
-
-    "Твій фаворит: «" + films[i].title + "» 🍿";
-
+  const choice = document.getElementById("myChoice");
+  if (selected.length === 0) {
+    choice.textContent = "Ти ще не обрав(ла) фільм";
+  } else {
+    const titles = selected.map(index => "«" + films[index].title + "»");
+    choice.textContent = "Твій вибір: " + titles.join(", ") + " 🍿";
+  }
 }
 
 // ПОДІЛИТИСЯ ВИБОРОМ
 
 async function shareVote() {
-
-  if (selected === null) {
-
-    alert("Спочатку обери фільм у списку 😊");
-
+  if (selected.length === 0) {
+    alert("Спочатку обери хоча б один фільм у списку 😊");
     return;
-
   }
 
-  const message =
-
-    "Мій голос за фільм «" +
-
-    films[selected].title +
-
-    "»! 🍿❄️";
+  const titles = selected.map(index => "«" + films[index].title + "»");
+  const message = "Мій вибір: " + titles.join(", ") + "! 🍿❄️";
 
   if (navigator.share) {
-
     try {
-
-      await navigator.share({
-
-        title: "Мій вибір",
-
-        text: message
-
-      });
-
+      await navigator.share({ title: "Мій вибір", text: message });
     } catch (error) {
-
       // Користувач закрив меню поширення
-
     }
-
   } else {
-
     try {
-
       await navigator.clipboard.writeText(message);
-
       alert("Текст скопійовано! Надсилай його в чат 💛");
-
     } catch (error) {
-
       prompt("Скопіюй свій вибір:", message);
-
     }
-
   }
-
 }
 
 </script>
